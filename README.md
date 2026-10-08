@@ -4,7 +4,7 @@ A FastAPI application for text generation and word embedding queries.
 
 ## Requirements
 
-- Python
+- Python 3.12 or 3.13
 - [uv](https://docs.astral.sh/uv/)
 - Docker (optional)
 
@@ -22,6 +22,10 @@ Install the project dependencies:
 ```bash
 uv sync
 ```
+
+This installs FastAPI, Uvicorn, spaCy, and the pretrained `en_core_web_md`
+English model from the committed `uv.lock`. The model includes 300-dimensional
+word vectors. The first installation requires network access; API requests do not.
 
 ## Run the API Locally
 
@@ -52,7 +56,7 @@ Send a POST request to the text-generation endpoint:
 ```bash
 curl -X POST "http://127.0.0.1:8000/generate" \
   -H "Content-Type: application/json" \
-  -d '{"prompt":"the","max_tokens":10}'
+  -d '{"start_word":"the","length":10}'
 ```
 
 ### Query a Word Embedding
@@ -62,6 +66,14 @@ Send a GET request to the embedding endpoint:
 ```bash
 curl "http://127.0.0.1:8000/embedding?word=apple"
 ```
+
+The response includes `word`, `model`, `dimension` (300), and `embedding`,
+an array of 300 numbers from the pretrained spaCy model. Supply one word.
+Empty or multiword inputs return HTTP 400 (an empty query string returns 422);
+words without a pretrained vector return HTTP 404.
+
+Text generation uses a small demonstration corpus and may stop before the
+requested length if there is no next word. Start words are case-sensitive.
 
 You can also test all available endpoints interactively at:
 
@@ -89,7 +101,16 @@ Then open:
 http://127.0.0.1:8000/docs
 ```
 
-## Project Files
+## Verify the API
+
+```bash
+uv run python -m pytest tests -q
+```
+
+These tests load the real pretrained model and verify the vector response,
+invalid-input handling, health check, and the documented text-generation request.
+
+## Repository Contents
 
 The repository includes the API source code and the required project configuration files:
 

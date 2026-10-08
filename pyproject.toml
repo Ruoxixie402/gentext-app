@@ -3,11 +3,19 @@ name = "gentext-app"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = []
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.30,<1",
+    "spacy>=3.8,<3.9",
+    "en-core-web-md @ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.8.0/en_core_web_md-3.8.0-py3-none-any.whl",
+]
 
 [project.scripts]
 gentext-app = "gentext_app:main"
+
+[dependency-groups]
+dev = ["httpx>=0.27,<1", "pytest>=8,<10"]
 
 [build-system]
 requires = ["uv_build>=0.12.19,<0.13.0"]

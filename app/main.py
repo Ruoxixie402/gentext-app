@@ -1,11 +1,21 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from app.bigram_model import BigramModel
+from contextlib import asynccontextmanager
+import spacy
+from fastapi import Query, Request
+
+
+@asynccontextmanager
+async def lifespan(app):
+    app.state.nlp = spacy.load("en_core_web_md")
+    yield
 
 app = FastAPI(
-    title="Bigram Text Generation API",
-    description="Generate text using a Bigram language model",
-    version="1.0.0"
+    title="Text Generation and Word Embedding API",
+    description="Generate bigram text and query pretrained spaCy word vectors",
+    version="1.1.0",
+    lifespan=lifespan,
 )
 
 
@@ -21,6 +31,20 @@ corpus = [
 
 
 bigram_model = BigramModel(corpus)
+
+
+@app.get("/embedding")
+def word_embedding(request: Request, word: str = Query(..., min_length=1)):
+    """Return the pretrained spaCy vector for one English word."""
+    word = word.strip()
+    tokens = request.app.state.nlp.make_doc(word)
+    if len(tokens) != 1 or tokens[0].is_space:
+        raise HTTPException(status_code=400, detail="Provide exactly one non-empty word.")
+    token = tokens[0]
+    if not token.has_vector:
+        raise HTTPException(status_code=404, detail="No pretrained vector is available for this word.")
+    vector = token.vector.tolist()
+    return {"word": word, "model": "en_core_web_md", "dimension": len(vector), "embedding": vector}
 
 
 class TextGenerationRequest(BaseModel):
