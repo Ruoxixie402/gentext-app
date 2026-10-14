@@ -8,22 +8,14 @@ import random
 import numpy as np
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, random_split
-from torchvision.datasets import CIFAR10
+from torch.utils.data import random_split
 
-from app.cnn import ARCHITECTURE, CLASSES, CIFAR10CNN, image_transform
+from helper_lib.model import ARCHITECTURE, get_model
+from helper_lib.data_loader import get_data_loader
+from helper_lib.trainer import train_model
+from helper_lib.evaluator import evaluate_model
+from helper_lib.utils import save_model, load_checkpoint
 from app.image_classifier import DEFAULT_CHECKPOINT
-
-
-def evaluate(model, loader, device):
-    model.eval()
-    correct = total = 0
-    with torch.inference_mode():
-        for images, labels in loader:
-            predictions = model(images.to(device)).argmax(dim=1)
-            correct += int((predictions == labels.to(device)).sum())
-            total += len(labels)
-    return correct / total
 
 
 def main():
@@ -43,46 +35,37 @@ def main():
     torch.manual_seed(args.seed)
     torch.set_num_threads(args.threads)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    dataset = CIFAR10(args.data_dir, train=True, download=args.download, transform=image_transform())
+    dataset = get_data_loader(args.data_dir, args.batch_size, download=args.download).dataset
     training, validation = random_split(dataset, [45000, 5000], generator=torch.Generator().manual_seed(args.seed))
-    train_loader = DataLoader(training, batch_size=args.batch_size, shuffle=True)
-    val_loader = DataLoader(validation, batch_size=args.batch_size)
-    model = CIFAR10CNN().to(device)
+    train_loader = get_data_loader(args.data_dir, args.batch_size, dataset=training)
+    val_loader = get_data_loader(args.data_dir, args.batch_size, train=False, dataset=validation)
+    model = get_model("CNN").to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss_function = nn.CrossEntropyLoss()
     best_accuracy = -1.0
     history = []
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    for epoch in range(1, args.epochs + 1):
-        model.train()
-        loss_sum = 0.0
-        for images, labels in train_loader:
-            images, labels = images.to(device), labels.to(device)
-            optimizer.zero_grad(set_to_none=True)
-            loss = loss_function(model(images), labels)
-            loss.backward()
-            optimizer.step()
-            loss_sum += loss.item() * len(labels)
-        accuracy = evaluate(model, val_loader, device)
-        record = {"epoch": epoch, "train_loss": loss_sum / len(training), "validation_accuracy": accuracy}
+    def on_epoch_end(epoch, train_loss):
+        nonlocal best_accuracy
+        _, accuracy = evaluate_model(model, val_loader, loss_function, device)
+        record = {"epoch": epoch, "train_loss": train_loss, "validation_accuracy": accuracy}
         history.append(record)
         print(json.dumps(record), flush=True)
         if accuracy > best_accuracy:
             best_accuracy = accuracy
-            torch.save({
-                "architecture": ARCHITECTURE, "classes": list(CLASSES),
-                "state_dict": {key: value.cpu() for key, value in model.state_dict().items()},
-                "epoch": epoch, "seed": args.seed, "validation_accuracy": accuracy,
-            }, args.output)
-    saved = torch.load(args.output, map_location=device, weights_only=True)
+            save_model(model, args.output, epoch=epoch, seed=args.seed, validation_accuracy=accuracy)
+
+    train_model(model, train_loader, loss_function, optimizer, device,
+                args.epochs, on_epoch_end=on_epoch_end)
+    saved = load_checkpoint(args.output, device)
     model.load_state_dict(saved["state_dict"])
-    test_data = CIFAR10(args.data_dir, train=False, download=args.download, transform=image_transform())
-    test_accuracy = evaluate(model, DataLoader(test_data, batch_size=args.batch_size), device)
+    test_loader = get_data_loader(args.data_dir, args.batch_size, train=False, download=args.download)
+    test_loss, test_accuracy = evaluate_model(model, test_loader, loss_function, device)
     report = {
         "architecture": ARCHITECTURE, "seed": args.seed, "device": str(device),
         "training_images": len(training), "validation_images": len(validation),
-        "test_images": len(test_data), "best_epoch": saved["epoch"],
-        "test_accuracy": test_accuracy, "history": history,
+        "test_images": len(test_loader.dataset), "best_epoch": saved["epoch"],
+        "test_accuracy": test_accuracy, "test_loss": test_loss, "history": history,
     }
     args.output.with_suffix(".metrics.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({"test_accuracy": test_accuracy, "checkpoint": str(args.output)}), flush=True)

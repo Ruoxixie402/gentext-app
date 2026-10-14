@@ -8,7 +8,9 @@ import warnings
 from PIL import Image, ImageOps, UnidentifiedImageError
 import torch
 
-from app.cnn import ARCHITECTURE, CLASSES, CIFAR10CNN, image_transform
+from helper_lib.model import CLASSES
+from helper_lib.data_loader import image_transform
+from helper_lib.utils import load_model
 
 DEFAULT_CHECKPOINT = Path(__file__).resolve().parents[1] / "models" / "cifar10.pt"
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
@@ -17,14 +19,7 @@ MAX_IMAGE_BYTES = 5 * 1024 * 1024
 class ImageClassifier:
     def __init__(self, checkpoint):
         torch.set_num_threads(int(os.getenv("CNN_NUM_THREADS", "4")))
-        saved = torch.load(checkpoint, map_location="cpu", weights_only=True)
-        if saved.get("architecture") != ARCHITECTURE or tuple(saved.get("classes", ())) != CLASSES:
-            raise ValueError("Incompatible CIFAR-10 checkpoint metadata.")
-        if saved.get("epoch", 0) < 1:
-            raise ValueError("The checkpoint must contain trained weights.")
-        self.model = CIFAR10CNN()
-        self.model.load_state_dict(saved["state_dict"], strict=True)
-        self.model.eval()
+        self.model = load_model(checkpoint)
         self.transform = image_transform()
 
     def predict(self, data):

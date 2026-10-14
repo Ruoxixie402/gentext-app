@@ -10,7 +10,7 @@ This is a small educational classifier for CIFAR-10-style images; arbitrary
 photos outside that dataset may be misclassified. Softmax confidence is not a
 calibrated probability of correctness.
 
-`app/cnn.py` implements the specified architecture exactly: RGB 64×64 input,
+`helper_lib/model.py` implements the specified architecture exactly: RGB 64×64 input,
 3×3 convolutions with 16 then 32 filters (stride 1, padding 1), each followed
 by ReLU and 2×2/stride-2 max pooling, flatten, linear 8,192→100, ReLU,
 linear 100→10. It contains 825,398 trainable parameters. CIFAR-10's 32×32
@@ -194,3 +194,52 @@ The repository includes the API source code and the required project configurati
 - `uv.lock`
 - `Dockerfile`
 - `README.md`
+
+## Module 4 helper library
+
+The assignment follows the directory structure and function interfaces in the
+Module 4 activity PDF:
+
+```text
+helper_lib/
+├── __init__.py
+├── data_loader.py  # get_data_loader(), shared image_transform()
+├── model.py        # get_model("CNN"), exact Assignment 2 architecture
+├── trainer.py      # train_model(), optional validation callback
+├── evaluator.py    # evaluate_model(): mean loss and accuracy
+└── utils.py        # save_model(), load_model(), load_checkpoint()
+```
+
+The training command and API use these helpers directly. `app/cnn.py` retains
+compatibility imports for earlier callers. Only the CNN required by Assignment 2
+is implemented; FCNN, EnhancedCNN, VAE and GAN are not required by this assignment.
+The existing trained weights remain compatible; restructuring did not retrain
+or change the model. The reported 65.08% accuracy is from the original five-epoch
+training run.
+
+Example following the Module 4 usage pattern (run from the repository root):
+
+```python
+from helper_lib.data_loader import get_data_loader
+from helper_lib.model import get_model
+from helper_lib.trainer import train_model
+from helper_lib.evaluator import evaluate_model
+from helper_lib.utils import save_model
+import torch.nn as nn
+import torch.optim as optim
+
+# Both loaders use the same CIFAR-10 root, not separate image directories.
+# First run: uv run --frozen python -m app.download_cifar10
+train_loader = get_data_loader("data", batch_size=64)
+test_loader = get_data_loader("data", batch_size=64, train=False)
+model = get_model("CNN")
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+trained_model = train_model(model, train_loader, criterion, optimizer, epochs=5)
+avg_loss, accuracy = evaluate_model(trained_model, test_loader, criterion)
+save_model(trained_model, "models/classroom-example.pt", epoch=5)
+```
+
+The full `app.train_classifier` command additionally uses a validation split to
+select the checkpoint before evaluating the test set. Loss helpers expect a
+scalar mean-loss criterion, such as the default `nn.CrossEntropyLoss()`.
