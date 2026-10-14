@@ -2,6 +2,9 @@
 
 A FastAPI application for text generation and word embedding queries.
 
+The separately organized CNN assignment is in [assignment2/](assignment2/README.md).
+To run that submission independently, enter `assignment2/` and follow its README.
+
 ## Assignment 2: CNN image classifier
 
 The API also classifies PNG/JPEG uploads into the ten CIFAR-10 classes:
