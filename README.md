@@ -69,7 +69,7 @@ it never substitutes random weights. Set `CNN_CHECKPOINT` to use a different
 compatible checkpoint, or `CNN_NUM_THREADS` to change inference CPU parallelism.
 Restart the server after replacing its checkpoint.
 
-### Verify and review the theory answers
+### Verify the API
 
 ```bash
 uv run --frozen python -m pytest tests -q
@@ -77,8 +77,6 @@ uv run --frozen python -m pytest tests -q
 
 Classifier unit tests use deterministic synthetic weights to verify API
 behavior; model accuracy comes from the real held-out dataset evaluation.
-The full worked solutions to all six arithmetic questions and an architecture
-shape/parameter table are in [docs/assignment2-answers.md](docs/assignment2-answers.md).
 
 ## Requirements
 
