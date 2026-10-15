@@ -1,0 +1,37 @@
+{
+  "architecture": "cifar10-cnn-64-v1",
+  "seed": 42,
+  "device": "cpu",
+  "training_images": 45000,
+  "validation_images": 5000,
+  "test_images": 10000,
+  "best_epoch": 5,
+  "test_accuracy": 0.6508,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.5020817979600694,
+      "validation_accuracy": 0.553
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.1681057616551718,
+      "validation_accuracy": 0.5952
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.0243237703747219,
+      "validation_accuracy": 0.6198
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.9105232284228006,
+      "validation_accuracy": 0.6358
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.8202919844521417,
+      "validation_accuracy": 0.6488
+    }
+  ]
+}
