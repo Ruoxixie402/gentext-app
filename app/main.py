@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from app.bigram_model import BigramModel
 from contextlib import asynccontextmanager
 import spacy
+from app.gan.api import router as gan_router
 from fastapi import Query, Request
 
 
@@ -12,12 +13,14 @@ async def lifespan(app):
     yield
 
 app = FastAPI(
-    title="Text Generation and Word Embedding API",
-    description="Generate bigram text and query pretrained spaCy word vectors",
-    version="1.1.0",
+    title="Text, Embedding, and MNIST GAN API",
+    description="Generate bigram text, query pretrained spaCy vectors, and generate MNIST-style digits",
+    version="1.2.0",
     lifespan=lifespan,
 )
 
+
+app.include_router(gan_router)
 
 corpus = [
     "The Count of Monte Cristo is a novel written by Alexandre Dumas.",

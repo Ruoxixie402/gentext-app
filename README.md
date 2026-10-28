@@ -119,3 +119,95 @@ The repository includes the API source code and the required project configurati
 - `uv.lock`
 - `Dockerfile`
 - `README.md`
+
+## Assignment 3: MNIST GAN
+
+The exact assignment architecture is in `app/gan/models.py`. The generator maps
+100-dimensional Gaussian noise through a linear layer to 128×7×7, then uses
+128→64→1 transposed convolutions (kernel 4, stride 2, padding 1), with BatchNorm
+and ReLU after the first convolution and Tanh after the second. There is no
+extra activation after the linear layer. The discriminator uses 1→64→128
+convolutions with the specified BatchNorm and LeakyReLU(0.2), then a linear
+layer and Sigmoid to return a real/fake probability.
+
+### Train
+
+```bash
+uv sync --frozen
+uv run python -m app.gan.train --epochs 20
+```
+
+MNIST pixels are normalized from [0,1] to [-1,1] to match Tanh. Each batch
+alternates discriminator training on real images and detached generated images,
+then generator training against real labels (the non-saturating GAN objective).
+Training uses binary cross entropy and Adam with learning rate 0.0002 and
+betas (0.5, 0.999). The discriminator is frozen, including BatchNorm statistics,
+during the generator update. MNIST labels are unused: generation is
+unconditional, so callers cannot select a particular digit.
+
+The training script writes `artifacts/generator.pt` (inference weights and
+metadata), `artifacts/training.json` (epoch-average losses and run settings), and
+`artifacts/samples.png` (64 fixed-noise samples). Each epoch replaces these
+files. The checkpoint is for inference; it does not include optimizer states
+for resuming training. Losses alone do not measure image quality or digit coverage.
+The included five-epoch sample grid contains recognizable digits with visible
+noise and broken strokes. This is an early training checkpoint; longer training
+can be explored, while checking samples for quality and diversity. No digit
+classification accuracy or distribution-quality score has been measured.
+The random seed helps reproduce a run; results can differ across hardware and
+PyTorch versions. This lockfile uses CPU PyTorch wheels for a portable CPU API.
+
+If the default MNIST download hosts are unavailable, an optional mirror can be
+provided. To reproduce the five-epoch checkpoint included in this repository, use the
+standard MNIST gzip files from this mirror:
+
+```bash
+uv run python -m app.gan.train --epochs 5 --threads 2 \
+  --mnist-mirror https://raw.githubusercontent.com/fgnt/mnist/master/
+```
+
+Torchvision validates these downloads against its built-in MNIST checksums.
+Downloaded data is ignored by Git. The trained generator is included so the
+API can generate images without training or downloading data at startup.
+
+### Generate digit images
+
+```bash
+uv run uvicorn app.main:app --reload
+curl -X POST http://127.0.0.1:8000/generate/digits \
+  -H 'Content-Type: application/json' \
+  -d '{"count":4,"seed":42}'
+```
+
+The response contains `count`, `width`, `height`, `format`, and `images_base64`:
+one base64-encoded grayscale PNG per image. Decode an entry with Python:
+
+```python
+import base64
+from pathlib import Path
+import httpx
+
+response = httpx.post('http://127.0.0.1:8000/generate/digits',
+                      json={'count': 4, 'seed': 42})
+response.raise_for_status()
+for i, encoded in enumerate(response.json()['images_base64']):
+    Path(f'digit-{i}.png').write_bytes(base64.b64decode(encoded))
+```
+
+`count` must be 1–64. An optional integer `seed` from 0 to 2³²−1 makes requests
+repeatable with the same weights and runtime. Invalid requests return 422.
+A missing checkpoint returns 503; it never silently serves an untrained model.
+Set `GAN_CHECKPOINT` before starting the server to use another compatible
+checkpoint. The model is loaded on the first digit request and cached; restart
+the server after changing the weights. Only load checkpoints you trust.
+
+The existing `/generate`, `/embedding`, and `/health` routes remain available.
+Theory answers with all calculations are in `docs/assignment3-answers.md`.
+
+```bash
+uv run python -m pytest tests -q
+```
+
+The GAN tests check output shapes/ranges, adversarial gradient flow, PNG decoding,
+seed repeatability, request validation, and missing-checkpoint handling. The
+existing API tests exercise the real pretrained spaCy embeddings as well.
