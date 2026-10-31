@@ -1,9 +1,8 @@
 """Module 6 helper-library smoke tests."""
-import matplotlib
-matplotlib.use('Agg')
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
+from PIL import Image
 from helper_lib import get_model, train_gan, generate_samples
 
 
@@ -25,7 +24,6 @@ def test_gan_training_and_samples():
     history = train_gan((generator, discriminator), loader, nn.BCELoss(), optimizers, epochs=1)
     assert len(history) == 1
     assert history[0]['generator_loss'] >= 0
-    figure = generate_samples(generator, 'cpu', num_samples=3)
-    assert len(figure.axes) == 3
-    import matplotlib.pyplot as plt
-    plt.close(figure)
+    image = generate_samples(generator, 'cpu', num_samples=3)
+    assert isinstance(image, Image.Image)
+    assert image.width > 28 and image.height >= 28
