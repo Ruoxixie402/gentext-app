@@ -211,3 +211,31 @@ uv run python -m pytest tests -q
 The GAN tests check output shapes/ranges, adversarial gradient flow, PNG decoding,
 seed repeatability, request validation, and missing-checkpoint handling. The
 existing API tests exercise the real pretrained spaCy embeddings as well.
+
+## Module 6 Activity: GAN Helper Library
+
+The `helper_lib` package provides the three requested reusable entry points:
+
+- `helper_lib.model.get_model(model_name)`: supports `FCNN`, `CNN`, `EnhancedCNN`, `VAE`, and `GAN`. The GAN option returns `(generator, discriminator)` and reuses the exact Assignment 3 architecture. The other four options are MNIST-compatible reference models; compare their layers with any earlier Module 4 implementation if exact reuse is required.
+- `helper_lib.trainer.train_gan(model, data_loader, criterion, optimizer, device='cpu', epochs=10)`: trains a GAN pair with separate generator and discriminator optimizers and returns epoch loss history. Supply a loader with images normalized to [-1,1].
+- `helper_lib.generator.generate_samples(model, device, num_samples=10)`: creates a PIL image grid. In a notebook, use `display(grid)`; in a desktop session, use `grid.show()`.
+
+Example:
+
+```python
+import torch
+from torch import nn
+from helper_lib import get_model, train_gan, generate_samples
+
+generator, discriminator = get_model('GAN')
+optimizers = (
+    torch.optim.Adam(generator.parameters(), lr=0.0002),
+    torch.optim.Adam(discriminator.parameters(), lr=0.0002),
+)
+# Use a prepared MNIST DataLoader with pixels normalized to [-1, 1]:
+# history = train_gan((generator, discriminator), loader, nn.BCELoss(), optimizers, epochs=10)
+image_grid = generate_samples(generator, 'cpu', num_samples=10)
+image_grid.save('module6-samples.png')
+```
+
+The grid example above uses a newly initialized generator unless you train or load weights first. The existing `POST /generate/digits` endpoint and saved Assignment 3 checkpoint are unchanged. Run `uv run python -m pytest tests/test_module6.py -q` for helper-library smoke tests.
