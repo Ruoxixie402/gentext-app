@@ -1,16 +1,16 @@
-"""Generate and display a grid of MNIST-style GAN samples."""
-import math
+"""Generate MNIST-style GAN samples and arrange them in a displayable grid."""
 import torch
+from PIL import Image
+from torchvision.utils import make_grid
 
 
 def generate_samples(model, device, num_samples=10):
-    """Return a Matplotlib figure of generated digits (without blocking display).
+    """Return a PIL image grid, displayable with display(image) or image.show().
 
-    Accepts a generator or a (generator, discriminator) pair.
+    Accepts either a generator or a (generator, discriminator) pair.
     """
     if num_samples < 1:
         raise ValueError('num_samples must be positive')
-    import matplotlib.pyplot as plt
     generator = model[0] if isinstance(model, (tuple, list)) else model
     device = torch.device(device)
     generator.to(device)
@@ -18,15 +18,9 @@ def generate_samples(model, device, num_samples=10):
     generator.eval()
     try:
         with torch.inference_mode():
-            images = generator(torch.randn(num_samples, generator.latent_dim, device=device)).detach().cpu()
+            images = generator(torch.randn(num_samples, generator.latent_dim, device=device)).cpu()
     finally:
         generator.train(was_training)
-    columns = min(5, num_samples)
-    rows = math.ceil(num_samples / columns)
-    fig, axes = plt.subplots(rows, columns, figsize=(columns * 2, rows * 2), squeeze=False)
-    for i, ax in enumerate(axes.flat):
-        ax.axis('off')
-        if i < num_samples:
-            ax.imshow(images[i, 0].clamp(-1, 1).add(1).div(2).numpy(), cmap='gray', vmin=0, vmax=1)
-    fig.tight_layout()
-    return fig
+    grid = make_grid(images, nrow=min(5, num_samples), normalize=True, value_range=(-1, 1), padding=2)
+    pixels = (grid.clamp(0, 1) * 255).round().to(torch.uint8).permute(1, 2, 0).numpy()
+    return Image.fromarray(pixels)
