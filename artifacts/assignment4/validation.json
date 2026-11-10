@@ -1,0 +1,12 @@
+{
+  "dataset": "CIFAR-10",
+  "split": "test",
+  "examples": 512,
+  "selection_seed": 123,
+  "evaluation_seed": 1234,
+  "diffusion_noise_mse": 0.08593215513974428,
+  "untrained_unet_noise_mse_same_inputs": 1.093674659729004,
+  "ebm_mean_real_energy": -49.760703563690186,
+  "ebm_mean_uniform_noise_energy": 56.195258140563965,
+  "interpretation": "Noise-prediction and energy-separation diagnostics only. Uniform images are not model samples. These are not FID, likelihood, class accuracy, or evidence of recognizable generated objects."
+}

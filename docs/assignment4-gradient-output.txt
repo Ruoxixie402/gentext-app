@@ -1,0 +1,10 @@
+Q6(a): x.grad = tensor([7.])
+Q6(b): backward raises RuntimeError; x.grad = None
+Q6(c)/Q7(c): default requires_grad = False
+Q7(a): x.grad = tensor([7.]) ; w.grad = None
+Q7(b): x.grad = tensor([7.]) ; w.grad = tensor([4., 2.])
+Q8 original: backward raises RuntimeError
+Q8 corrected: x.grad = tensor([6.])
+Q9 first backward: x.grad = tensor([2.])
+Q9 accumulated: x.grad = tensor([5.])
+Q9 after clearing: x.grad = tensor([3.])

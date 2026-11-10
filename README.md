@@ -239,3 +239,24 @@ image_grid.save('module6-samples.png')
 ```
 
 The grid example above uses a newly initialized generator unless you train or load weights first. The existing `POST /generate/digits` endpoint and saved Assignment 3 checkpoint are unchanged. Run `uv run python -m pytest tests/test_module6.py -q` for helper-library smoke tests.
+
+## Assignment 4: CIFAR-10 Energy and Diffusion Models
+
+Both models are implemented in `app/cifar10/` and added to the Module 6 API:
+
+- `POST /generate/energy`: energy-based image sampling with explicit input gradients.
+- `POST /generate/diffusion`: time-conditioned UNet with DDPM reverse sampling.
+
+Both return base64-encoded 32×32 RGB PNGs and load committed CIFAR-10-trained
+weights. See [training, API, Docker, and limitations](docs/assignment4-usage.md),
+[all nine worked theory answers](docs/assignment4-answers.md), and
+[executed gradient-example output](docs/assignment4-gradient-output.txt).
+
+The submission branch is `assignment4-cifar10-ebm-diffusion`. For a fresh checkout:
+
+```bash
+git clone --branch assignment4-cifar10-ebm-diffusion https://github.com/Ruoxixie402/gentext-app.git
+cd gentext-app
+uv sync --frozen
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+```

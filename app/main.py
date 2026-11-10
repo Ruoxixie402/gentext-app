@@ -4,6 +4,7 @@ from app.bigram_model import BigramModel
 from contextlib import asynccontextmanager
 import spacy
 from app.gan.api import router as gan_router
+from app.cifar10.api import router as cifar_router
 from fastapi import Query, Request
 
 
@@ -13,14 +14,15 @@ async def lifespan(app):
     yield
 
 app = FastAPI(
-    title="Text, Embedding, and MNIST GAN API",
-    description="Generate bigram text, query pretrained spaCy vectors, and generate MNIST-style digits",
-    version="1.2.0",
+    title="Text, Embeddings, GAN, Energy and Diffusion API",
+    description="Text and embeddings, MNIST GAN, and CIFAR-10 energy/diffusion generation",
+    version="1.3.0",
     lifespan=lifespan,
 )
 
 
 app.include_router(gan_router)
+app.include_router(cifar_router)
 
 corpus = [
     "The Count of Monte Cristo is a novel written by Alexandre Dumas.",

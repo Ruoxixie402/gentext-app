@@ -1,0 +1,42 @@
+{
+  "model": "ebm",
+  "dataset": "CIFAR-10",
+  "split": "train",
+  "examples_per_epoch": 50000,
+  "seed": 42,
+  "device": "cpu",
+  "torch_version": "2.15.0+cpu",
+  "channels": 16,
+  "batch_size": 128,
+  "learning_rate": 0.0002,
+  "diffusion_steps": null,
+  "langevin_steps": 10,
+  "langevin_step_size": 0.01,
+  "energy_regularization": 0.01,
+  "replay_buffer_size": 1024,
+  "replay_restart_probability": 0.05,
+  "history": [
+    {
+      "epoch": 1,
+      "loss": -20.241325541971324,
+      "elapsed_seconds": 74.317697764,
+      "real_energy": -21.871010653095244,
+      "negative_energy": 14.744028793048859
+    },
+    {
+      "epoch": 2,
+      "loss": -47.81788437988281,
+      "elapsed_seconds": 161.03210606800002,
+      "real_energy": -45.73700772460938,
+      "negative_energy": 49.14412656738281
+    },
+    {
+      "epoch": 3,
+      "loss": -49.40796255981445,
+      "elapsed_seconds": 234.03806045,
+      "real_energy": -48.94545890625,
+      "negative_energy": 49.7402504296875
+    }
+  ],
+  "limitations": "Small educational model; generated quality has not been quantified with FID or IS."
+}

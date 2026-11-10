@@ -1,0 +1,31 @@
+{
+  "model": "diffusion",
+  "dataset": "CIFAR-10",
+  "split": "train",
+  "examples_per_epoch": 50000,
+  "seed": 42,
+  "device": "cpu",
+  "torch_version": "2.15.0+cpu",
+  "channels": 16,
+  "batch_size": 128,
+  "learning_rate": 0.0002,
+  "diffusion_steps": 100,
+  "langevin_steps": null,
+  "langevin_step_size": null,
+  "energy_regularization": null,
+  "replay_buffer_size": null,
+  "replay_restart_probability": null,
+  "history": [
+    {
+      "epoch": 1,
+      "loss": 0.24218749270915985,
+      "elapsed_seconds": 217.04466887499996
+    },
+    {
+      "epoch": 2,
+      "loss": 0.10112287670612335,
+      "elapsed_seconds": 424.296768919
+    }
+  ],
+  "limitations": "Small educational model; generated quality has not been quantified with FID or IS."
+}
