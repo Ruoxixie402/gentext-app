@@ -12,6 +12,7 @@ dependencies = [
     "torch>=2.6,<3",
     "torchvision>=0.21,<1",
     "pillow>=10,<14",
+    "matplotlib>=3.9,<4",
 ]
 
 [project.scripts]

@@ -1,10 +1,9 @@
 """Reusable GAN training loop for the Module 6 activity."""
 import torch
-from torch import nn
 
 
 def train_gan(model, data_loader, criterion, optimizer, device='cpu', epochs=10):
-    """Train a GAN and return epoch-average losses.
+    """Train a GAN and return the supplied trained (generator, discriminator) pair.
 
     model: (generator, discriminator) tuple.
     optimizer: (generator_optimizer, discriminator_optimizer) tuple.
@@ -21,11 +20,10 @@ def train_gan(model, data_loader, criterion, optimizer, device='cpu', epochs=10)
     device = torch.device(device)
     generator.to(device)
     discriminator.to(device)
-    history = []
     for epoch in range(epochs):
         generator.train()
         discriminator.train()
-        sum_g = sum_d = total = 0
+        total = 0
         for batch_data in data_loader:
             real = batch_data[0] if isinstance(batch_data, (tuple, list)) else batch_data
             real = real.to(device)
@@ -45,10 +43,7 @@ def train_gan(model, data_loader, criterion, optimizer, device='cpu', epochs=10)
             opt_g.step()
             discriminator.requires_grad_(True)
             discriminator.train()
-            sum_g += loss_g.item() * batch_size
-            sum_d += loss_d.item() * batch_size
             total += batch_size
         if total == 0:
             raise ValueError('data_loader is empty')
-        history.append({'epoch': epoch + 1, 'generator_loss': sum_g / total, 'discriminator_loss': sum_d / total})
-    return history
+    return model

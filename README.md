@@ -217,8 +217,8 @@ existing API tests exercise the real pretrained spaCy embeddings as well.
 The `helper_lib` package provides the three requested reusable entry points:
 
 - `helper_lib.model.get_model(model_name)`: supports `FCNN`, `CNN`, `EnhancedCNN`, `VAE`, and `GAN`. The GAN option returns `(generator, discriminator)` and reuses the exact Assignment 3 architecture. The other four options are MNIST-compatible reference models; compare their layers with any earlier Module 4 implementation if exact reuse is required.
-- `helper_lib.trainer.train_gan(model, data_loader, criterion, optimizer, device='cpu', epochs=10)`: trains a GAN pair with separate generator and discriminator optimizers and returns epoch loss history. Supply a loader with images normalized to [-1,1].
-- `helper_lib.generator.generate_samples(model, device, num_samples=10)`: creates a PIL image grid. In a notebook, use `display(grid)`; in a desktop session, use `grid.show()`.
+- `helper_lib.trainer.train_gan(model, data_loader, criterion, optimizer, device='cpu', epochs=10)`: trains a GAN pair with separate generator and discriminator optimizers and returns the supplied trained `(generator, discriminator)` pair. Supply a loader with images normalized to [-1,1].
+- `helper_lib.generator.generate_samples(model, device, num_samples=10)`: samples latent vectors and displays an image grid using Matplotlib (`plt.show()`), as required by the activity. It also returns a PIL grid for optional saving.
 
 Example:
 
@@ -233,7 +233,7 @@ optimizers = (
     torch.optim.Adam(discriminator.parameters(), lr=0.0002),
 )
 # Use a prepared MNIST DataLoader with pixels normalized to [-1, 1]:
-# history = train_gan((generator, discriminator), loader, nn.BCELoss(), optimizers, epochs=10)
+# generator, discriminator = train_gan((generator, discriminator), loader, nn.BCELoss(), optimizers, epochs=10)
 image_grid = generate_samples(generator, 'cpu', num_samples=10)
 image_grid.save('module6-samples.png')
 ```

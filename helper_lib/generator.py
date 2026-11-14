@@ -1,11 +1,12 @@
 """Generate MNIST-style GAN samples and arrange them in a displayable grid."""
 import torch
+import matplotlib.pyplot as plt
 from PIL import Image
 from torchvision.utils import make_grid
 
 
 def generate_samples(model, device, num_samples=10):
-    """Return a PIL image grid, displayable with display(image) or image.show().
+    """Display generated samples on a grid and return the grid as a PIL image.
 
     Accepts either a generator or a (generator, discriminator) pair.
     """
@@ -23,4 +24,12 @@ def generate_samples(model, device, num_samples=10):
         generator.train(was_training)
     grid = make_grid(images, nrow=min(5, num_samples), normalize=True, value_range=(-1, 1), padding=2)
     pixels = (grid.clamp(0, 1) * 255).round().to(torch.uint8).permute(1, 2, 0).numpy()
-    return Image.fromarray(pixels)
+    image = Image.fromarray(pixels)
+    figure, axis = plt.subplots()
+    try:
+        axis.imshow(image)
+        axis.axis("off")
+        plt.show()
+    finally:
+        plt.close(figure)
+    return image
