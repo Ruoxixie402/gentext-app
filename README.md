@@ -2,7 +2,7 @@
 
 A FastAPI application for text generation and word embedding queries.
 
-## Dataset loading — instructor verification
+## Dataset preparation and reproducibility
 
 **The data-loader Python file is [helper_lib/dataloader.py](helper_lib/dataloader.py).**
 It loads actual torchvision datasets, not synthetic images:
@@ -21,8 +21,8 @@ uv run python -m helper_lib.verify_data --dataset all
 ```
 
 Results are in [artifacts/dataset-verification/](artifacts/dataset-verification/).
-See [the instructor verification guide](docs/dataset-verification.md) for dataset
-sources, exact commands, labels, checksum interpretation, and the executed Module 6 run.
+See the [assignment data preparation and reproducibility report](docs/dataset-verification.md)
+for the implementation, dataset sources, recorded results, and reproduction commands.
 Raw datasets are downloaded to `data/` and ignored by Git. The API loads trained
 weights; dataset loading belongs to the training scripts rather than API startup.
 

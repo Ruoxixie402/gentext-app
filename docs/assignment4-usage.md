@@ -64,12 +64,12 @@ manages parameter gradient flags. CPU thread counts can be limited when serving:
 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 uv run uvicorn app.main:app
 ```
 
-## Dataset loader and instructor verification
+## Dataset preparation and reproducibility
 
 The explicit data-loader file is `helper_lib/dataloader.py`. Both energy and
 diffusion training call its `get_cifar10_dataloader` function. Held-out evaluation
 calls `get_cifar10_dataset(train=False)`. Module 6 and Assignment 3 use its
-separate MNIST loader. See [dataset verification](dataset-verification.md).
+separate MNIST loader. See the [data preparation and reproducibility report](dataset-verification.md).
 
 ```bash
 uv run python -m helper_lib.verify_data --dataset cifar10
