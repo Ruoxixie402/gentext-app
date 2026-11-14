@@ -6,9 +6,9 @@ from pathlib import Path
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
 from torchvision.utils import save_image
+
+from helper_lib.dataloader import get_mnist_dataloader
 
 from .models import Discriminator, Generator
 
@@ -29,11 +29,8 @@ def main():
     torch.manual_seed(args.seed)
     torch.set_num_threads(args.threads)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-    if args.mnist_mirror:
-        datasets.MNIST.mirrors = [args.mnist_mirror.rstrip('/') + '/']
-    dataset = datasets.MNIST(args.data_dir, train=True, download=True, transform=transform)
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    loader = get_mnist_dataloader(args.data_dir, args.batch_size, mirror=args.mnist_mirror)
+    dataset = loader.dataset
     generator, discriminator = Generator().to(device), Discriminator().to(device)
     opt_g = torch.optim.Adam(generator.parameters(), lr=0.0002, betas=(0.5, 0.999))
     opt_d = torch.optim.Adam(discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999))

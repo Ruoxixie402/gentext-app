@@ -6,7 +6,8 @@ from pathlib import Path
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Subset
-from torchvision import datasets, transforms
+
+from helper_lib.dataloader import get_cifar10_dataset
 
 from .models import EnergyModel, NoiseUNet
 from .sampling import DiffusionSchedule
@@ -22,8 +23,7 @@ def main():
         parser.error('examples must be between 1 and 10000')
     torch.set_num_threads(2)
     torch.manual_seed(123)
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,) * 3, (0.5,) * 3)])
-    dataset = datasets.CIFAR10(args.data_dir, train=False, download=False, transform=transform)
+    dataset = get_cifar10_dataset(args.data_dir, train=False, download=False)
     indices = torch.randperm(len(dataset))[:args.examples].tolist()
     loader = DataLoader(Subset(dataset, indices), batch_size=64)
     models = {}

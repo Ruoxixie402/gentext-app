@@ -1,0 +1,20 @@
+{
+  "dataset": "torchvision.datasets.MNIST",
+  "split": "train",
+  "dataset_size": 60000,
+  "examples_per_epoch": 60000,
+  "batches_per_epoch": 469,
+  "epochs_completed": 1,
+  "batch_size": 128,
+  "seed": 42,
+  "device": "cpu",
+  "image_shape": [
+    1,
+    28,
+    28
+  ],
+  "normalization": "ToTensor, Normalize(mean=0.5,std=0.5)",
+  "loader_source": "helper_lib/dataloader.py:get_mnist_dataloader",
+  "training_source": "helper_lib/trainer.py:train_gan",
+  "torch_version": "2.15.0+cpu"
+}

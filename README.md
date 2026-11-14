@@ -2,6 +2,30 @@
 
 A FastAPI application for text generation and word embedding queries.
 
+## Dataset loading — instructor verification
+
+**The data-loader Python file is [helper_lib/dataloader.py](helper_lib/dataloader.py).**
+It loads actual torchvision datasets, not synthetic images:
+
+| Work | Required dataset | Loader actually called by the training script |
+| --- | --- | --- |
+| Module 6 GAN activity | MNIST: 60,000 training digits, 1×28×28 | [examples/module6_mnist.py](examples/module6_mnist.py) calls `get_mnist_dataloader` and `train_gan` |
+| Assignment 3 GAN | MNIST | [app/gan/train.py](app/gan/train.py) calls `get_mnist_dataloader` |
+| Assignment 4 energy and diffusion | CIFAR-10: 50,000 training RGB images, 3×32×32 | [app/cifar10/train.py](app/cifar10/train.py) calls `get_cifar10_dataloader` |
+
+To download and verify the real inputs, write dataset/checksum reports, and save
+real-image grids (not model-generated images):
+
+```bash
+uv run python -m helper_lib.verify_data --dataset all
+```
+
+Results are in [artifacts/dataset-verification/](artifacts/dataset-verification/).
+See [the instructor verification guide](docs/dataset-verification.md) for dataset
+sources, exact commands, labels, checksum interpretation, and the executed Module 6 run.
+Raw datasets are downloaded to `data/` and ignored by Git. The API loads trained
+weights; dataset loading belongs to the training scripts rather than API startup.
+
 ## Requirements
 
 - Python 3.12 or 3.13
@@ -225,20 +249,21 @@ Example:
 ```python
 import torch
 from torch import nn
-from helper_lib import get_model, train_gan, generate_samples
+from helper_lib import get_model, get_mnist_dataloader, train_gan, generate_samples
 
 generator, discriminator = get_model('GAN')
 optimizers = (
     torch.optim.Adam(generator.parameters(), lr=0.0002),
     torch.optim.Adam(discriminator.parameters(), lr=0.0002),
 )
-# Use a prepared MNIST DataLoader with pixels normalized to [-1, 1]:
-# generator, discriminator = train_gan((generator, discriminator), loader, nn.BCELoss(), optimizers, epochs=10)
+loader = get_mnist_dataloader("data", batch_size=128)  # Real MNIST, normalized to [-1,1].
+generator, discriminator = train_gan((generator, discriminator), loader, nn.BCELoss(), optimizers, epochs=1)
 image_grid = generate_samples(generator, 'cpu', num_samples=10)
 image_grid.save('module6-samples.png')
 ```
 
-The grid example above uses a newly initialized generator unless you train or load weights first. The existing `POST /generate/digits` endpoint and saved Assignment 3 checkpoint are unchanged. Run `uv run python -m pytest tests/test_module6.py -q` for helper-library smoke tests.
+The example above trains on the real MNIST training split before displaying samples.
+A complete executable version is `uv run python -m examples.module6_mnist --epochs 1`. The existing `POST /generate/digits` endpoint and saved Assignment 3 checkpoint are unchanged. Run `uv run python -m pytest tests/test_module6.py -q` for helper-library smoke tests.
 
 ## Assignment 4: CIFAR-10 Energy and Diffusion Models
 

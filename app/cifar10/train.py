@@ -6,9 +6,9 @@ from pathlib import Path
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
 from torchvision.utils import save_image
+
+from helper_lib.dataloader import get_cifar10_dataloader
 
 from .models import EnergyModel, NoiseUNet
 from .sampling import DiffusionSchedule, langevin_sample
@@ -18,9 +18,8 @@ def train(args):
     torch.set_num_threads(args.threads)
     torch.manual_seed(args.seed)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,) * 3, (0.5,) * 3)])
-    dataset = datasets.CIFAR10(args.data_dir, train=True, download=True, transform=transform)
-    loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    loader = get_cifar10_dataloader(args.data_dir, args.batch_size)
+    dataset = loader.dataset
     args.output_dir.mkdir(parents=True, exist_ok=True)
     if args.model == 'ebm':
         model = EnergyModel(args.channels).to(device)
